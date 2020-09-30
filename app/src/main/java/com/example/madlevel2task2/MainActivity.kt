@@ -8,6 +8,8 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.madlevel2task2.databinding.ActivityMainBinding
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.question_layout.*
 
 class MainActivity : AppCompatActivity() {
@@ -23,17 +25,21 @@ class MainActivity : AppCompatActivity() {
         init()
     }
 
+    /**
+     * this method makes the layout for the rvQuestions recyclerView
+     */
     private fun init() {
         binding.rvQuestions.layoutManager =
             LinearLayoutManager(this@MainActivity, RecyclerView.VERTICAL, false)
         binding.rvQuestions.adapter = questionsAdapter
         addQuestions()
-        createSwipe()
+
+        createSwipe().attachToRecyclerView(rvQuestions)
 
     }
 
 
-    private fun createSwipe() {
+    private fun createSwipe(): ItemTouchHelper {
         val callback = object :
             ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT + ItemTouchHelper.LEFT) {
             override fun onMove(
@@ -41,16 +47,31 @@ class MainActivity : AppCompatActivity() {
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean {
-                false
+                return false
             }
 
+            /**
+             * this method puts removes the right questions out the list and the questions that are
+             * wrong will be set at the end of the list
+             */
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.adapterPosition
-                questions.removeAt(position)
-                questionsAdapter.notifyDataSetChanged()
-            }
+                if (direction == ItemTouchHelper.LEFT){
+                    Snackbar.make(rvQuestions, "Item will not be deleted from list ", Snackbar.LENGTH_LONG).show()
+                    val position = viewHolder.adapterPosition
+                    val question = questions[position]
+                    questions.removeAt(position)
+                    questions.add(question)
+                    questionsAdapter.notifyDataSetChanged()
+                }else{
+                    val position = viewHolder.adapterPosition
+                    questions.removeAt(position)
+                    questionsAdapter.notifyDataSetChanged()
+                }
 
+
+            }
         }
+        return ItemTouchHelper(callback)
 
     }
 
